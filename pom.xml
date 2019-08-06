@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>x509</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>XELLITIX Commons - X509</name>
     <description>X509 Utilities</description>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.xellitix.commons</groupId>
             <artifactId>encoding</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>0.1.0</version>
         </dependency>
 
         <!-- Test dependencies -->
