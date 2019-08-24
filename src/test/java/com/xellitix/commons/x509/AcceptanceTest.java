@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.inject.Guice;
 import com.xellitix.commons.encoding.base64.Base64Module;
-import java.security.cert.X509Certificate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,8 +55,7 @@ public class AcceptanceTest {
   public void parseCertificate__Test() throws Exception {
     assertThat(certificateParser
         .parse(CERTIFICATE))
-        .isNotNull()
-        .isInstanceOf(X509Certificate.class);
+        .isNotNull();
   }
 
   @Before

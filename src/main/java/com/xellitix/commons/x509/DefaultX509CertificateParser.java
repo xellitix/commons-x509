@@ -5,7 +5,9 @@ import com.google.inject.Singleton;
 import com.xellitix.commons.encoding.base64.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 /**
@@ -16,8 +18,12 @@ import java.security.cert.X509Certificate;
 @Singleton
 public class DefaultX509CertificateParser implements X509CertificateParser {
 
+  // Constants
+  private static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+  private static final String END_CERT = "-----END CERTIFICATE-----";
+
   // Dependencies
-  private final X509CertificateFactoryProvider certificateFactoryProvider;
+  private final CertificateFactory certificateFactory;
   private final Base64 base64;
 
   /**
@@ -31,7 +37,11 @@ public class DefaultX509CertificateParser implements X509CertificateParser {
       final X509CertificateFactoryProvider certificateFactoryProvider,
       final Base64 base64) {
 
-    this.certificateFactoryProvider = certificateFactoryProvider;
+    /*
+    Note that we injected a provider, rather than a factory, to avoid binding a provider
+    to the generic CertificateFactory type.
+     */
+    this.certificateFactory = certificateFactoryProvider.get();
     this.base64 = base64;
   }
 
@@ -46,8 +56,8 @@ public class DefaultX509CertificateParser implements X509CertificateParser {
   public X509Certificate parse(String certificate) throws CertificateException {
     // Remove boundary markers and newlines
     certificate = certificate
-        .replace("-----BEGIN CERTIFICATE-----", "")
-        .replace("-----END CERTIFICATE-----", "")
+        .replace(BEGIN_CERT, "")
+        .replace(END_CERT, "")
         .replace("\n", "")
         .trim();
 
@@ -58,8 +68,16 @@ public class DefaultX509CertificateParser implements X509CertificateParser {
     final InputStream certificateDataStream = new ByteArrayInputStream(certificateData);
 
     // Create the certificate
-    return (X509Certificate) certificateFactoryProvider
-        .get()
-        .generateCertificate(certificateDataStream);
+    final Certificate cert = certificateFactory.generateCertificate(certificateDataStream);
+
+    // Validate that the certificate is an X509 certificate
+    if (!X509Certificate.class.isInstance(cert)) {
+      throw new IllegalStateException(String.format(
+          "Expected parsed Certificate to be an instance of %s. It was an instance of %s",
+          X509Certificate.class.getName(),
+          cert.getClass().getName()));
+    }
+
+    return (X509Certificate) cert;
   }
 }
